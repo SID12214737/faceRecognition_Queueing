@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Register</h1>
+    <form action="{{ url_for('register') }}" method="post" enctype="multipart/form-data">
+        <label for="text_input">Text Input:</label>
+        <input type="text" id="text_input" name="text_input" required><br><br>
+        <label for="image_file">Upload Image:</label>
+        <input type="file" id="image_file" name="image_file" required><br><br>
+        <input type="submit" value="Submit">
+    </form>
+{% endblock %}

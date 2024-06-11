@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Register Live</h1>
+    <form action="{{ url_for('register_live') }}" method="post">
+        <label for="text_input">Text Input:</label>
+        <input type="text" id="text_input" name="text_input" required><br><br>
+        
+        <video id="videoElement" width="320" height="240" autoplay></video><br>
+        <button type="button" id="captureButton">Capture Image</button><br><br>
+        
+        <canvas id="canvasElement" width="320" height="240" style="display:none;"></canvas>
+        <input type="hidden" id="imageDataInput" name="image_data">
+        
+        <input type="submit" value="Submit">
+    </form>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %}

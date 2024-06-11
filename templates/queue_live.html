@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Queue Live</h1>
+    <video id="videoElement" width="320" height="240" autoplay></video><br>
+    <button type="button" id="captureButton">Capture Image</button><br><br>
+    
+    <canvas id="canvasElement" width="320" height="240" style="display:none;"></canvas>
+    <input type="hidden" id="imageDataInput" name="image_data">
+    
+    <button type="button" id="submitButton">Submit Image</button>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Upload an Image</h2>
+<form method="post" enctype="multipart/form-data">
+    <div>
+        <label for="image_file">Image:</label>
+        <input type="file" id="image_file" name="image_file" required>
+    </div>
+    <button type="submit">Submit</button>
+</form>
+
+{% if response %}
+    <h3>{{ response.message }}</h3>
+    <img src="{{ response.image_url }}" alt="Uploaded Image">
+{% endif %}
+{% endblock %}

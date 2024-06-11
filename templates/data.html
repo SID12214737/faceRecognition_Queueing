@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Queue Data</h1>
+    {% if queue_contents %}
+        <ul>
+            {% for patient in queue_contents %}
+                <li>{{ patient }}</li>
+            {% endfor %}
+        </ul>
+        <form action="/dequeue" method="POST">
+            <button type="submit">Dequeue</button>
+        </form>
+    {% else %}
+        <p>Queue is empty</p>
+    {% endif %}
+{% endblock %}
+
