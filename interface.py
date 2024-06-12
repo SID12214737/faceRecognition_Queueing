@@ -7,9 +7,10 @@ import cv2
 import numpy as np
 from img_encoder import known_name_encodings, known_names, collect_faces, load_data
 from data_manager import DataManager
+import threading
 
 patients_queue = Queue()
-
+lock = threading.Lock()
 
 known_names, known_name_encodings = load_data()
 if not (known_name_encodings and known_names):
@@ -22,12 +23,9 @@ if not (known_name_encodings and known_names):
         print("WARNING: DATABASE EMPTY")
 
 
-def compare(path):
-    # image path
-    img = path
-    
+def compare(path):    
     try: # read image with opencv
-        image = cv2.imread(img)
+        image = cv2.imread(path)
     except:
         print("Can't read image from: ", path)
         return 
@@ -35,6 +33,9 @@ def compare(path):
     # get face encodings an locations from image
     face_locations = fr.face_locations(image)
     face_encodings = fr.face_encodings(image, face_locations)
+
+    # initializing matches to an empty list
+    matches = []
 
     # comparing and so on...
     for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
@@ -45,10 +46,11 @@ def compare(path):
         best_match = np.argmin(face_distances)
         
     #print("mathes: ", known_names)
-    
-    if matches[best_match]:
-        print("Found: ", known_names[best_match])
-    return known_names[best_match]
+    matched_name = None
+    if matches and matches[best_match]:
+        matched_name = known_names[best_match]
+        print("Found: ", matched_name)
+    return matched_name
 
 def add_to_queue(patient):
     dataManager = DataManager('patients.db')  # Create DataManager instance within each request
@@ -65,10 +67,11 @@ def add_to_queue(patient):
 
 
 def dequeue_patient():
-    if not patients_queue.empty():
-        return patients_queue.get()
-    else:
-        return "Queue is empty"
+    with lock:
+        if not patients_queue.empty():
+            return patients_queue.get()
+        else:
+            return "Queue is empty"
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'

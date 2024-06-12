@@ -45,8 +45,8 @@ def compare(path):
         print("Found: ", known_names[best_match])
     return known_names[best_match]
 
-test = "C:/Users/MiR/Desktop/minipro/faces/mir.jpg"
-
+test = "faces\\mir.jpg"
+datamanager = data_manager.DataManager('patients.db')
 if __name__ == '__main__':
     patient = compare(test)
-    print(data_manager.find_patient_by_name(patient))
+    print(datamanager.find_patient_by_name(patient))
