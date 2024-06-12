@@ -74,10 +74,16 @@ def dequeue_patient():
             return "Queue is empty"
 
 app = Flask(__name__)
+app.config['QUEUE_FOLDER'] = 'static/queued'
+app.config['REGISTRATION_FOLDER'] = 'faces'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+if not os.path.exists(app.config['QUEUE_FOLDER']):
+    os.makedirs(app.config['QUEUE_FOLDER'])
+if not os.path.exists(app.config['REGISTRATION_FOLDER']):
+    os.makedirs(app.config['REGISTRATION_FOLDER'])
 
 # Dummy data storage
 data_storage = []
@@ -92,27 +98,33 @@ def register():
         text_input = request.form['text_input']
         image_file = request.files['image_file']
         if image_file:
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_file.filename)
+            image_path = os.path.join(app.config['REGISTRATION_FOLDER'], image_file.filename)
             image_file.save(image_path)
             data_storage.append({'text': text_input, 'image': image_file.filename})
-            return redirect(url_for('confirmation'))
+            message = "Registration in process"
+            response = {"message": message}
+            return render_template('register.html', response=response)
     return render_template('register.html')
 
 @app.route('/register_live', methods=['GET', 'POST'])
 def register_live():
     if request.method == 'POST':
-        text_input = request.form['text_input']
+        name_input = request.form['name_input']
+        age_input = request.form['age_input']
+        description_input = request.form['description_input']
         image_data = request.form['image_data']
         if image_data:
             # Decode the base64 image data
             image_data = image_data.split(",")[1]
             image_data = base64.b64decode(image_data)
-            image_filename = f"{text_input.replace(' ', '_')}.png"
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
+            image_filename = f"{name_input.replace(' ', '_')}.png"
+            image_path = os.path.join(app.config['REGISTRATION_FOLDER'], image_filename)
             with open(image_path, 'wb') as f:
                 f.write(image_data)
-            data_storage.append({'text': text_input, 'image': image_filename})
-            return redirect(url_for('confirmation'))
+            data_storage.append({'text': name_input, 'image': image_filename})
+            message = "Registration in process"
+            response = {"message": message}
+            return render_template('register_live.html', response=response)
     return render_template('register_live.html')
 
 @app.route('/queue_live', methods=['GET', 'POST'])
@@ -124,7 +136,7 @@ def queue_live():
             image_data = image_data.split(",")[1]
             image_data = base64.b64decode(image_data)
             image_filename = f"queued_image_{len(data_storage) + 1}.png"
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
+            image_path = os.path.join(app.config['QUEUEU_FOLDER'], image_filename)
             
             with open(image_path, 'wb') as f:
                 f.write(image_data)
@@ -146,7 +158,7 @@ def queue():
     if request.method == 'POST':
         image_file = request.files['image_file']
         if image_file:
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_file.filename)
+            image_path = os.path.join(app.config['QUEUE_FOLDER'], image_file.filename)
             image_file.save(image_path)
             persona = compare(image_path)
 
