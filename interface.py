@@ -23,14 +23,15 @@ except:
     else:
         print("WARNING: FACES DATABASE EMPTY")
 
-
+def save_img():
+    pass
 
 def compare(path):    
     try: # read image with opencv
         image = cv2.imread(path)
     except:
         print("Can't read image from: ", path)
-        return 
+        return False
     
     # get face encodings an locations from image
     face_locations = fr.face_locations(image)
@@ -55,17 +56,18 @@ def compare(path):
     return matched_name
 
 def add_to_queue(patient):
-    dataManager = DataManager('patients.db')  # Create DataManager instance within each request
-    _ = dataManager.find_patient_by_name(patient)
-    print(_)
-    if len(_) != 0:
-        if patient not in patients_queue.queue:
-            patients_queue.put(_)
+    data_manager = DataManager('patients.db')
+    patient_info = data_manager.find_patient_by_name(patient)
+
+    if patient_info:
+        if patient_info not in patients_queue.queue:
+            patients_queue.put(patient_info)
             return f"{patient} successfully added to the queue"
         else:
             return f"{patient} is already in the queue"
     else:
-        return "Patient can't be found from database!"
+        return "Patient not found in the database"
+
 
 
 def dequeue_patient():
@@ -74,6 +76,20 @@ def dequeue_patient():
             return patients_queue.get()
         else:
             return "Queue is empty"
+
+def registrar(image_path, name, age, desc):
+    try:
+        data_manager = DataManager("patients.db")
+        if collect_single_face(image_path):
+            data_storage.append({'text': name, 'image': image_path})
+            message = f"{name} registered successfull"
+            if not data_manager.add_patient(name, age, desc):
+                message = "Patient with the same name already exists."
+        else: message = "Face wasn't recognized"
+        response = {"message": message}
+        return response
+    except:
+        response = "Serverside error."
 
 app = Flask(__name__)
 app.config['QUEUE_FOLDER'] = 'static/queued'
@@ -94,15 +110,6 @@ data_storage = []
 def index():
     return render_template('index.html')
 
-def registrar(image_path, name, age, desc):
-    data_manager = DataManager("patients.db")
-    if collect_single_face(image_path):
-        data_storage.append({'text': name, 'image': image_path})
-        message = "Registration successfull"
-        data_manager.add_patient(name, age, desc)
-    else: message = "Face wasn't recognized"
-    response = {"message": message}
-    return response
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -112,10 +119,10 @@ def register():
         description_input = request.form['description_input']
         image_file = request.files['image_file']
         if image_file:
-            image_path = os.path.join(app.config['REGISTRATION_FOLDER'], image_file.filename)
+            image_path = os.path.join(app.config['REGISTRATION_FOLDER'], (name_input+".jpg"))
             image_file.save(image_path)
             response = registrar(image_path=image_path, name=name_input, age=age_input, desc=description_input)
-            return jsonify(response)
+            return redirect('/register', Response=response)
     return render_template('register.html')
 
 @app.route('/register_live', methods=['GET', 'POST'])
@@ -130,11 +137,11 @@ def register_live():
             image_data = image_data.split(",")[1]
             image_data = base64.b64decode(image_data)
             image_filename = f"{name_input.replace(' ', '_')}.png"
-            image_path = os.path.join(app.config['REGISTRATION_FOLDER'], image_filename)
+            image_path = os.path.join(app.config['REGISTRATION_FOLDER'], image_filename + ".jpg")
             with open(image_path, 'wb') as f:
                 f.write(image_data)
             response = registrar(image_path=image_path, name=name_input, age=age_input, desc=description_input)
-            return jsonify(response)
+            return redirect('/register_live', Response=response)
     return render_template('register_live.html')
 
 @app.route('/queue_live', methods=['GET', 'POST'])
@@ -161,7 +168,7 @@ def queue_live():
 
             # Simulate some processing and return a response
             response = {"message": message}
-            return jsonify(response)
+            return response
     return render_template('queue_live.html')
 
 @app.route('/queue', methods=['GET', 'POST'])

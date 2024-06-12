@@ -15,4 +15,8 @@
         <input type="file" id="image_file" name="image_file" required><br><br>
         <input type="submit" value="Submit">
     </form>
+    {% if response %}
+        <h3>{{ response.message }}</h3>
+        <img src="{{ response.image_url }}" alt="Uploaded Image">
+    {% endif %}
 {% endblock %}

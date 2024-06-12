@@ -9,4 +9,8 @@
     
     <button type="button" id="submitButton">Submit Image</button>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {% if response %}
+                <h3>{{ response.message }}</h3>
+                <img src="{{ response.image_url }}" alt="Uploaded Image">
+    {% endif %}
 {% endblock %}
