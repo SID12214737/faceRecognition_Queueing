@@ -12,15 +12,17 @@ import threading
 patients_queue = Queue()
 lock = threading.Lock()
 
-known_names, known_name_encodings = load_data()
-if not (known_name_encodings and known_names):
+try:
+    known_names, known_name_encodings = load_data()
+except:
     print("No known faces in the list!!!.")
     print("Collecting lists...")
-    collect_faces()
-    print("NOTE: ", len(known_names), " faces added to the list.\n")
-    known_names, known_name_encodings = load_data()
-    if not (known_name_encodings and known_names):
-        print("WARNING: DATABASE EMPTY")
+    if (collect_faces()):
+        print("NOTE: ", len(known_names), " faces added to the list.\n")
+        known_names, known_name_encodings = load_data()
+    else:
+        print("WARNING: FACES DATABASE EMPTY")
+
 
 
 def compare(path):    
@@ -140,11 +142,12 @@ def queue_live():
     if request.method == 'POST':
         image_data = request.form['image_data']
         if image_data:
+            print("here")
             # Decode the base64 image data
             image_data = image_data.split(",")[1]
             image_data = base64.b64decode(image_data)
             image_filename = f"queued_image_{len(data_storage) + 1}.png"
-            image_path = os.path.join(app.config['QUEUEU_FOLDER'], image_filename)
+            image_path = os.path.join(app.config['QUEUE_FOLDER'], image_filename)
             
             with open(image_path, 'wb') as f:
                 f.write(image_data)
@@ -177,7 +180,7 @@ def queue():
 
             # Simulate some processing and return a response
             response = {"message": message}
-            return render_template('queue.html', response=response)
+            return jsonify(response)
     return render_template('queue.html', response=None)
 
 @app.route('/confirmation')

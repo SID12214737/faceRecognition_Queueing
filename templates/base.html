@@ -18,6 +18,10 @@
     </nav>
     <div class="content">
         {% block content %}{% endblock %}
+        {% if response %}
+            <h3>{{ response.message }}</h3>
+            <img src="{{ response.image_url }}" alt="Uploaded Image">
+        {% endif %}
     </div>
 </body>
 </html>
