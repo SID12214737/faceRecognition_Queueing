@@ -115,7 +115,7 @@ def register():
             image_path = os.path.join(app.config['REGISTRATION_FOLDER'], image_file.filename)
             image_file.save(image_path)
             response = registrar(image_path=image_path, name=name_input, age=age_input, desc=description_input)
-            return render_template('register.html', response=response)
+            return jsonify(response)
     return render_template('register.html')
 
 @app.route('/register_live', methods=['GET', 'POST'])
@@ -134,7 +134,7 @@ def register_live():
             with open(image_path, 'wb') as f:
                 f.write(image_data)
             response = registrar(image_path=image_path, name=name_input, age=age_input, desc=description_input)
-            return render_template('register_live.html', response=response)
+            return jsonify(response)
     return render_template('register_live.html')
 
 @app.route('/queue_live', methods=['GET', 'POST'])
