@@ -4,8 +4,8 @@ import numpy as np
 import os
 import json
 
-path = "faces/"
-images = os.listdir(path)
+Fpath = "faces/"
+images = os.listdir(Fpath)
 
 # Define the data file path
 DATA_FILE = 'data_storage.json'
@@ -45,15 +45,25 @@ def load_data():
             return known_names, known_name_encodings
     return [], []
 
+def collect_single_face(path):
+    image = fr.load_image_file(path)
+    image_path = path
+    encoding = fr.face_encodings(image)[0]
+    known_name_encodings.append(encoding)
+    known_names.append(os.path.splitext(os.path.basename(image_path))[0].capitalize())   
+    save_data(known_names, known_name_encodings)
+    if fr.face_locations(image):
+        return True
+    return False
+
 
 def collect_faces():
     for _ in images:
-        image = fr.load_image_file(path + _)
-        image_path = path + _
-        encoding = fr.face_encodings(image)[0]
-        known_name_encodings.append(encoding)
-        known_names.append(os.path.splitext(os.path.basename(image_path))[0].capitalize())   
-        save_data(known_names, known_name_encodings)
+        collect_single_face(Fpath+_)
+    
+    if known_names:
+        return True
+    return False
 
 if __name__ == "__main__":
     collect_faces()

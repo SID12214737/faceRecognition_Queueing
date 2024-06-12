@@ -5,7 +5,7 @@ from queue import Queue
 import face_recognition as fr
 import cv2
 import numpy as np
-from img_encoder import known_name_encodings, known_names, collect_faces, load_data
+from img_encoder import known_name_encodings, known_names, collect_faces, load_data, collect_single_face
 from data_manager import DataManager
 import threading
 
@@ -92,17 +92,27 @@ data_storage = []
 def index():
     return render_template('index.html')
 
+def registrar(image_path, name, age, desc):
+    data_manager = DataManager("patients.db")
+    if collect_single_face(image_path):
+        data_storage.append({'text': name, 'image': image_path})
+        message = "Registration successfull"
+        data_manager.add_patient(name, age, desc)
+    else: message = "Face wasn't recognized"
+    response = {"message": message}
+    return response
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        text_input = request.form['text_input']
+        name_input = request.form['name_input']
+        age_input = request.form['age_input']
+        description_input = request.form['description_input']
         image_file = request.files['image_file']
         if image_file:
             image_path = os.path.join(app.config['REGISTRATION_FOLDER'], image_file.filename)
             image_file.save(image_path)
-            data_storage.append({'text': text_input, 'image': image_file.filename})
-            message = "Registration in process"
-            response = {"message": message}
+            response = registrar(image_path=image_path, name=name_input, age=age_input, desc=description_input)
             return render_template('register.html', response=response)
     return render_template('register.html')
 
@@ -121,9 +131,7 @@ def register_live():
             image_path = os.path.join(app.config['REGISTRATION_FOLDER'], image_filename)
             with open(image_path, 'wb') as f:
                 f.write(image_data)
-            data_storage.append({'text': name_input, 'image': image_filename})
-            message = "Registration in process"
-            response = {"message": message}
+            response = registrar(image_path=image_path, name=name_input, age=age_input, desc=description_input)
             return render_template('register_live.html', response=response)
     return render_template('register_live.html')
 
